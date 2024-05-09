@@ -17,7 +17,7 @@ namespace bislerium_blogs.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestPayload registerRequest)
         {
             //await _authenticationService.Register(registerRequest.FirstName, registerRequest.LastName, registerRequest.Email, registerRequest.Password);
             return Ok();

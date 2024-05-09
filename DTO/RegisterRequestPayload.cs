@@ -1,6 +1,6 @@
 ﻿namespace bislerium_blogs.DTO
 {
-    public class RegisterRequest
+    public class RegisterRequestPayload
     {
     }
 }

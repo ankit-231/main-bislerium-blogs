@@ -2,6 +2,7 @@ using bislerium_blogs.Data;
 using bislerium_blogs.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -60,6 +61,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(policy =>
+policy.WithOrigins("http://localhost:3000/", "https://localhost:3001")
+.AllowAnyMethod()
+.WithHeaders(HeaderNames.ContentType)
+);
 
 app.MapIdentityApi<CustomUser>();
 

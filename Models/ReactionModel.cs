@@ -6,7 +6,7 @@
         public int? ReactionStatus { get; set; } // 1, 0, or null
 
         // Foreign key properties
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
         public int? BlogId { get; set; }
         public int? CommentId { get; set; }
 

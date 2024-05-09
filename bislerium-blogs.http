@@ -22,3 +22,12 @@ Content-Type: application/json
 }
 
 ###
+
+POST {{bislerium-blogs_HostAddress}}/api/blog/React/0
+Content-Type: application/json
+
+{
+  //ReactionModel
+}
+
+###

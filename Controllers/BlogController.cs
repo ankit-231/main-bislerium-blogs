@@ -173,13 +173,19 @@ namespace bislerium_blogs.Controllers
         [Authorize]  // Ensure the user is authenticated
         public async Task<IActionResult> PostReaction(int id, [FromBody] ReactionModel reactionDto)
         {
+
+            System.Diagnostics.Debug.WriteLine(reactionDto);
+            //System.Diagnostics.Debug.WriteLine("reactionDtossasa");
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //if (userId == null)
-            //{
-            //    return Unauthorized("User is not logged in.");
-            //}
+            System.Diagnostics.Debug.WriteLine(userId);
+            ////if (userId == null)
+            ////{
+            ////    return Unauthorized("User is not logged in.");
+            ////}
 
             var reaction = await _dataContext.ReactionModel.FirstOrDefaultAsync(r => r.BlogId == id && r.UserId == userId);
+
+
 
             if (reaction != null)
             {
@@ -193,6 +199,8 @@ namespace bislerium_blogs.Controllers
                 System.Diagnostics.Debug.WriteLine(reactionDto.ReactionStatus);
                 System.Diagnostics.Debug.WriteLine(id);
                 System.Diagnostics.Debug.WriteLine(userId);
+                System.Diagnostics.Debug.WriteLine("dsadsadasdsa");
+
                 reaction = new ReactionModel
                 {
                     BlogId = id,
@@ -203,7 +211,9 @@ namespace bislerium_blogs.Controllers
             }
 
             await _dataContext.SaveChangesAsync();
-            return Ok(reaction);
+            //return Ok(reaction);
+            return Ok("Reaction added successfully.");
+
         }
     }
 }

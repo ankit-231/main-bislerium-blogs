@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace bislerium_blogs.Controllers
@@ -19,8 +20,9 @@ namespace bislerium_blogs.Controllers
         {
             _logger = logger;
         }
-
-        [HttpGet(Name = "GetWeatherForecast")]
+        
+        // add authorization
+        [HttpGet(Name = "GetWeatherForecast"), Authorize]
         public IEnumerable<WeatherForecast> Get()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

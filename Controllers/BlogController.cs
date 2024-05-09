@@ -13,7 +13,7 @@ namespace bislerium_blogs.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class BlogController : ControllerBase
     {
         private readonly DataContext _dataContext;
@@ -122,16 +122,19 @@ namespace bislerium_blogs.Controllers
 
             //return data.ToList();
 
-            
+            var blogs = await _dataContext.BlogModel.ToListAsync();
 
-            return Ok();
+
+            return Ok(blogs);
+
+            //return Ok();
 
             //return Ok("This is your blog");
         }
 
         //create post method for adding blog
         [HttpPost]
-        [Route("AddBlog")]
+        [Route("AddBlog"), Authorize]
         public async Task<ActionResult<BlogModel>> AddBlog(BlogModel blog)
         {
 
@@ -154,7 +157,7 @@ namespace bislerium_blogs.Controllers
 
         // Optional: GET by ID (to support CreatedAtAction)
         [HttpGet("{id}")]
-        [Route("GetBlog")]
+        [Route("GetBlog"), Authorize]
         public async Task<ActionResult<BlogModel>> GetBlog(int id)
         {
             var blog = await _dataContext.BlogModel.FindAsync(id);

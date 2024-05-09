@@ -2,15 +2,33 @@ using bislerium_blogs.Data;
 using bislerium_blogs.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//builder.WebHost.ConfigureKestrel((context, options) =>
+//{
+//    options.ListenAnyIP(8081); // Change port if needed
+//});
+
 
 // Add services to the container.
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+    });
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
 
 // identity authentication
 //builder.Services.AddIdentity<CustomUser, IdentityRole>()

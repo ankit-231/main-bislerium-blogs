@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bislerium_blogs.Data;
 
@@ -10,9 +11,11 @@ using bislerium_blogs.Data;
 namespace bislerium_blogs.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240509165442_ReactionAndComment")]
+    partial class ReactionAndComment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,9 +190,6 @@ namespace bislerium_blogs.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("ParentCommentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -197,8 +197,6 @@ namespace bislerium_blogs.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BlogId");
-
-                    b.HasIndex("ParentCommentId");
 
                     b.HasIndex("UserId");
 
@@ -376,10 +374,6 @@ namespace bislerium_blogs.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("bislerium_blogs.Models.CommentModel", "ParentComment")
-                        .WithMany()
-                        .HasForeignKey("ParentCommentId");
-
                     b.HasOne("bislerium_blogs.Models.CustomUser", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
@@ -387,8 +381,6 @@ namespace bislerium_blogs.Migrations
                         .IsRequired();
 
                     b.Navigation("Blog");
-
-                    b.Navigation("ParentComment");
 
                     b.Navigation("User");
                 });

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bislerium_blogs.Data;
 
@@ -10,9 +11,11 @@ using bislerium_blogs.Data;
 namespace bislerium_blogs.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240509153654_BlogModel")]
+    partial class BlogModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,45 +167,9 @@ namespace bislerium_blogs.Migrations
                     b.Property<DateTime>("UploadedTimestamp")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(255)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("BlogModel");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.CommentModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int?>("ParentCommentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("ParentCommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("CommentModel");
                 });
 
             modelBuilder.Entity("bislerium_blogs.Models.CustomUser", b =>
@@ -253,9 +220,6 @@ namespace bislerium_blogs.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Role")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
 
@@ -276,36 +240,6 @@ namespace bislerium_blogs.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.ReactionModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BlogId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CommentId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ReactionStatus")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BlogId");
-
-                    b.HasIndex("CommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ReactionModel");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -357,84 +291,6 @@ namespace bislerium_blogs.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.BlogModel", b =>
-                {
-                    b.HasOne("bislerium_blogs.Models.CustomUser", "User")
-                        .WithMany("Blogs")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.CommentModel", b =>
-                {
-                    b.HasOne("bislerium_blogs.Models.BlogModel", "Blog")
-                        .WithMany("Comments")
-                        .HasForeignKey("BlogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("bislerium_blogs.Models.CommentModel", "ParentComment")
-                        .WithMany()
-                        .HasForeignKey("ParentCommentId");
-
-                    b.HasOne("bislerium_blogs.Models.CustomUser", "User")
-                        .WithMany("Comments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("ParentComment");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.ReactionModel", b =>
-                {
-                    b.HasOne("bislerium_blogs.Models.BlogModel", "Blog")
-                        .WithMany("Reactions")
-                        .HasForeignKey("BlogId");
-
-                    b.HasOne("bislerium_blogs.Models.CommentModel", "Comment")
-                        .WithMany("Reactions")
-                        .HasForeignKey("CommentId");
-
-                    b.HasOne("bislerium_blogs.Models.CustomUser", "User")
-                        .WithMany("Reactions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Blog");
-
-                    b.Navigation("Comment");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.BlogModel", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Reactions");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.CommentModel", b =>
-                {
-                    b.Navigation("Reactions");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.CustomUser", b =>
-                {
-                    b.Navigation("Blogs");
-
-                    b.Navigation("Comments");
-
-                    b.Navigation("Reactions");
                 });
 #pragma warning restore 612, 618
         }

@@ -62,11 +62,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseCors(policy =>
-//policy.WithOrigins("http://localhost:3000/", "https://localhost:3001")
-//.AllowAnyMethod()
-//.WithHeaders(HeaderNames.ContentType)
-//);
+app.UseCors(policy =>
+policy.WithOrigins("http://localhost:3000/", "https://localhost:3001")
+.AllowAnyMethod()
+.WithHeaders(HeaderNames.ContentType)
+);
 
 app.MapIdentityApi<CustomUser>();
 

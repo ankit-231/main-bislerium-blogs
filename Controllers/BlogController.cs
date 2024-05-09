@@ -1,7 +1,13 @@
-﻿using bislerium_blogs.Models;
+﻿using bislerium_blogs.Data;
+using bislerium_blogs.DTO;
+using bislerium_blogs.Models;
+using bislerium_blogs.Services.Implementations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
+using System.Security.Claims;
 
 namespace bislerium_blogs.Controllers
 {
@@ -10,13 +16,25 @@ namespace bislerium_blogs.Controllers
     [Authorize]
     public class BlogController : ControllerBase
     {
+        private readonly DataContext _dataContext;
+        private readonly BlogService _blogService;
+
+
+        public BlogController(DataContext dataContext/*, BlogService blogService*/)
+        {
+            _dataContext = dataContext;
+            //_blogService = blogService;
+        }
+
         //[HttpGet]
         //public IActionResult Get()
         //{
         //    return Ok("This is your blog");
         //}
 
+        //[HttpGet(Name = "AllBlogs")]
         [HttpGet]
+        [Route("AllBlogs")]
         public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
         {
             //var blogs = new List<string>
@@ -25,19 +43,126 @@ namespace bislerium_blogs.Controllers
             //    "Blog 2",
             //    "Blog 3"
             //};
-            System.Diagnostics.Debug.WriteLine("User Claims:");
-            User.Claims.ToList().ForEach(c => System.Diagnostics.Debug.WriteLine($"Claim Type: {c.Type} - Claim Value: {c.Value}"));
-            var blogs = new List<BlogModel> { 
-                new BlogModel
-                {
-                    Title = "Blog 1",
-                    Content = "This is the content of Blog 1",
-                    UploadedTimestamp = DateTime.Now
-                }
-            };
-            return Ok(blogs);
+            //System.Diagnostics.Debug.WriteLine("User Claims:");
+
+            //var User = HttpContext.User;
+            //System.Diagnostics.Debug.WriteLine(User.FindFirstValue);
+
+            //User.Claims.ToList().ForEach(c => System.Diagnostics.Debug.WriteLine($"Claim Type: {c.Type} - Claim Value: {c.Value}"));
+            //var blogs = new List<BlogModel> {
+            //    new BlogModel
+            //    {
+            //        Title = "Blog 1",
+            //        Content = "This is the content of Blog 1",
+            //        UploadedTimestamp = DateTime.Now
+            //    }
+            //};
+
+            //bool isAdmin = false;
+            //try
+            //{
+            //    isAdmin = await _blogContext.UserDetail.Where(item => item.UserId == CommonService.GetUserId(_httpContextAccessor.HttpContext)).Select(item => item.IsAdmin).FirstOrDefaultAsync();
+            //}
+            //catch (Exception ex) { }
+
+            //List<DetailedBlogApplications> data = new List<DetailedBlogApplications>();
+
+            //if (isAdmin)
+            //{
+            //    data = (from blog in _blogContext.BlogApplication
+            //            join user in _blogContext.UserDetail on blog.UserId equals user.UserId
+            //            where blog.IsDeleted != true
+            //            select new DetailedBlogApplications
+            //            {
+            //                BlogId = blog.BlogId,
+            //                BlogTitle = blog.BlogTitle,
+            //                BlogDescription = blog.BlogDescription,
+            //                CreatedOn = blog.CreatedOn,
+            //                FullName = user.FirstName + " " + user.LastName,
+            //                UserId = blog.UserId,
+            //            }).ToList();
+            //}
+            //else
+            //{
+            //    data = (from blog in _blogContext.BlogApplication
+            //            join user in _blogContext.UserDetail on blog.UserId equals user.UserId
+            //            where blog.IsDeleted != true && blog.UserId == CommonService.GetUserId(_httpContextAccessor.HttpContext)
+            //            select new DetailedBlogApplications
+            //            {
+            //                BlogId = blog.BlogId,
+            //                BlogTitle = blog.BlogTitle,
+            //                BlogDescription = blog.BlogDescription,
+            //                CreatedOn = blog.CreatedOn,
+            //                FullName = user.FirstName + " " + user.LastName,
+            //                UserId = blog.UserId,
+            //            }).ToList();
+            //}
+
+
+            //foreach (var blog in data)
+            //{
+            //    var images = await _blogContext.BlogImages
+            //        .Where(img => img.BlogId == blog.BlogId && img.IsDeleted != true)
+            //        .ToListAsync();
+
+            //    List<BlogImageDetailed> detailedImages = images.Select(img => new BlogImageDetailed
+            //    {
+            //        ImageId = img.ImageId,
+            //        BlogId = img.BlogId,
+            //        ImagePath = img.ImagePath,
+            //    }).ToList();
+
+            //    Parallel.ForEach(detailedImages, img =>
+            //    {
+            //        img.ImageBytes = ReadLocalImageAsByteArray(img.ImagePath).Result;
+            //    });
+
+            //    blog.BlogImages = detailedImages;
+            //}
+
+            //return data.ToList();
+
+            
+
+            return Ok();
 
             //return Ok("This is your blog");
+        }
+
+        //create post method for adding blog
+        [HttpPost]
+        [Route("AddBlog")]
+        public async Task<ActionResult<BlogModel>> AddBlog(BlogModel blog)
+        {
+
+            blog.UploadedTimestamp = DateTime.Now;
+            blog.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var blogg = _dataContext.BlogModel.Add(blog);
+            System.Diagnostics.Debug.WriteLine(blogg);
+            System.Diagnostics.Debug.WriteLine(blog);
+
+            System.Diagnostics.Debug.WriteLine("blogggggg");
+            await _dataContext.SaveChangesAsync();
+            return CreatedAtAction("GetBlog", new { id = blog.Id }, blog);
+            //return Ok(blog);
+        }
+
+        // Optional: GET by ID (to support CreatedAtAction)
+        [HttpGet("{id}")]
+        [Route("GetBlog")]
+        public async Task<ActionResult<BlogModel>> GetBlog(int id)
+        {
+            var blog = await _dataContext.BlogModel.FindAsync(id);
+            if (blog == null)
+            {
+                return NotFound();
+            }
+            return blog;
         }
     }
 }

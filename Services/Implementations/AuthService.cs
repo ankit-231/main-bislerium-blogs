@@ -1,4 +1,5 @@
-﻿using bislerium_blogs.Models;
+﻿using bislerium_blogs.DTO;
+using bislerium_blogs.Models;
 using bislerium_blogs.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -19,10 +20,11 @@ namespace bislerium_blogs.Services.Implementations
             _emailService = emailService;
         }
 
-        public async Task Register(string firstName, string lastName, string email, string password)
+        //public async Task Register(string firstName, string lastName, string email, string password)
+        public async Task Register(RegisterRequestPayload registerPayload)
         {
-            var newUser = new CustomUser { FirstName = firstName, LastName = lastName, UserName = email, Email = email };
-            var result = await _userManager.CreateAsync(newUser, password);
+            var newUser = new CustomUser { FirstName = registerPayload.FirstName, LastName = registerPayload.LastName, UserName = registerPayload.Email, Email = registerPayload.Email };
+            var result = await _userManager.CreateAsync(newUser, registerPayload.Password);
             ValidateIdentityResult(result);
 
             await _userManager.AddToRoleAsync(newUser, "User");

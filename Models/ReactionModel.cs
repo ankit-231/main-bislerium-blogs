@@ -11,8 +11,8 @@
         public int? CommentId { get; set; }
 
         // Navigation properties
-        public CustomUser User { get; set; }
-        public BlogModel Blog { get; set; }
-        public CommentModel Comment { get; set; }
+        public CustomUser? User { get; set; }
+        public BlogModel? Blog { get; set; }
+        public CommentModel? Comment { get; set; }
     }
 }

@@ -1,6 +1,24 @@
+@bislerium-blogs_HostAddress = https://localhost:7209
 @bislerium_blogs_HostAddress = http://localhost:5191
 
 GET {{bislerium_blogs_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+GET {{bislerium-blogs_HostAddress}}/api/blog/GetBlog?id=0
+
+###
+
+GET {{bislerium-blogs_HostAddress}}/api/blog/GetBlog0
+
+###
+
+POST {{bislerium-blogs_HostAddress}}/api/blog/React/0
+Content-Type: application/json
+
+{
+  //ReactionModel
+}
 
 ###

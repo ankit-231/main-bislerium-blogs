@@ -14,6 +14,8 @@ namespace bislerium_blogs.Data
         // note new table then this is how you add it
         public DbSet<BlogModel> BlogModel { get; set; }
 
+        public DbSet<ReactionModel> ReactionModel { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

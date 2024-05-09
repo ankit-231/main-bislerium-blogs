@@ -34,7 +34,7 @@ namespace bislerium_blogs.Controllers
 
         //[HttpGet(Name = "AllBlogs")]
         [HttpGet]
-        [Route("AllBlogs")]
+        [Route("AllBlogs"), Authorize]
         public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
         {
             //var blogs = new List<string>
@@ -156,8 +156,8 @@ namespace bislerium_blogs.Controllers
         }
 
         // Optional: GET by ID (to support CreatedAtAction)
-        [HttpGet("{id}")]
-        [Route("GetBlog"), Authorize]
+        [HttpGet]
+        [Route("GetBlog/{id}")]
         public async Task<ActionResult<BlogModel>> GetBlog(int id)
         {
             var blog = await _dataContext.BlogModel.FindAsync(id);
@@ -166,6 +166,44 @@ namespace bislerium_blogs.Controllers
                 return NotFound();
             }
             return blog;
+        }
+
+        // POST: api/Blogs/{id}/react
+        [HttpPost("React/{id}")]
+        [Authorize]  // Ensure the user is authenticated
+        public async Task<IActionResult> PostReaction(int id, [FromBody] ReactionModel reactionDto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //if (userId == null)
+            //{
+            //    return Unauthorized("User is not logged in.");
+            //}
+
+            var reaction = await _dataContext.ReactionModel.FirstOrDefaultAsync(r => r.BlogId == id && r.UserId == userId);
+
+            if (reaction != null)
+            {
+                // Update existing reaction
+                reaction.ReactionStatus = reactionDto.ReactionStatus;
+            }
+            else
+            {
+                // Create new reaction
+                System.Diagnostics.Debug.WriteLine(reactionDto);
+                System.Diagnostics.Debug.WriteLine(reactionDto.ReactionStatus);
+                System.Diagnostics.Debug.WriteLine(id);
+                System.Diagnostics.Debug.WriteLine(userId);
+                reaction = new ReactionModel
+                {
+                    BlogId = id,
+                    UserId = userId,
+                    ReactionStatus = reactionDto.ReactionStatus
+                };
+                _dataContext.ReactionModel.Add(reaction);
+            }
+
+            await _dataContext.SaveChangesAsync();
+            return Ok(reaction);
         }
     }
 }

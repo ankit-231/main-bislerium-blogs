@@ -55,6 +55,12 @@ builder.Services.AddIdentityApiEndpoints<CustomUser>()
 
 var app = builder.Build();
 
+app.UseCors(policy =>
+policy.WithOrigins("http://localhost:3000", "https://localhost:3001")
+.AllowAnyMethod()
+.WithHeaders(HeaderNames.ContentType)
+);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -62,11 +68,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(policy =>
-policy.WithOrigins("http://localhost:3000/", "https://localhost:3001")
-.AllowAnyMethod()
-.WithHeaders(HeaderNames.ContentType)
-);
+
 
 app.MapIdentityApi<CustomUser>();
 
@@ -75,5 +77,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
 
 app.Run();

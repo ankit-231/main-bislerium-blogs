@@ -230,9 +230,18 @@ namespace bislerium_blogs.Controllers
             ////{
             ////    return Unauthorized("User is not logged in.");
             ////}
-
-            var parentComment = await _dataContext.CommentModel.FirstOrDefaultAsync(c => c.Id == commentDto.ParentCommentId);
-
+            if (commentDto.ParentCommentId != null)
+            {
+                var parentComment = await _dataContext.CommentModel.FirstOrDefaultAsync(c => c.Id == commentDto.ParentCommentId);
+                System.Diagnostics.Debug.WriteLine(parentComment);
+                System.Diagnostics.Debug.WriteLine(commentDto.ParentCommentId);
+                System.Diagnostics.Debug.WriteLine("dsaaadsadasdsa");
+                if (parentComment == null)
+                {
+                    return NotFound("Comment not found.");
+                }
+            }
+            
 
 
             //if (reaction != null)
@@ -258,7 +267,7 @@ namespace bislerium_blogs.Controllers
             _dataContext.CommentModel.Add(comment);
             await _dataContext.SaveChangesAsync();
             //return Ok(reaction);
-            return Ok("Reaction added successfully.");
+            return Ok("Comment added successfully.");
         }
     }
 }

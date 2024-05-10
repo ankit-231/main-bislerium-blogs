@@ -34,7 +34,7 @@ namespace bislerium_blogs.Controllers
 
         //[HttpGet(Name = "AllBlogs")]
         [HttpGet]
-        [Route("AllBlogs"), Authorize]
+        [Route("AllBlogs")]
         public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
         {
             //var blogs = new List<string>
@@ -214,6 +214,51 @@ namespace bislerium_blogs.Controllers
             //return Ok(reaction);
             return Ok("Reaction added successfully.");
 
+        }
+
+        // POST: api/Blogs/{id}/react
+        [HttpPost("Comment/{id}")]
+        [Authorize]  // Ensure the user is authenticated
+        public async Task<IActionResult> PostComment(int id, [FromBody] CommentModel commentDto)
+        {
+
+            System.Diagnostics.Debug.WriteLine(commentDto);
+            //System.Diagnostics.Debug.WriteLine("commentDtossasa");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            System.Diagnostics.Debug.WriteLine(userId);
+            ////if (userId == null)
+            ////{
+            ////    return Unauthorized("User is not logged in.");
+            ////}
+
+            var parentComment = await _dataContext.CommentModel.FirstOrDefaultAsync(c => c.Id == commentDto.ParentCommentId);
+
+
+
+            //if (reaction != null)
+            //{
+            //    // Update existing reaction
+            //    reaction.ReactionStatus = commentDto.ReactionStatus;
+            //}
+            //else
+            // Create new reaction
+            System.Diagnostics.Debug.WriteLine(commentDto);
+            System.Diagnostics.Debug.WriteLine(commentDto.Content);
+            System.Diagnostics.Debug.WriteLine(id);
+            System.Diagnostics.Debug.WriteLine(userId);
+            System.Diagnostics.Debug.WriteLine("dsadsadasdsa");
+            CommentModel comment = new CommentModel
+            {
+                BlogId = id,
+                UserId = userId,
+                Content = commentDto.Content,
+                ParentCommentId = commentDto.ParentCommentId
+
+            };
+            _dataContext.CommentModel.Add(comment);
+            await _dataContext.SaveChangesAsync();
+            //return Ok(reaction);
+            return Ok("Reaction added successfully.");
         }
     }
 }

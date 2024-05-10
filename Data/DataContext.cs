@@ -15,6 +15,7 @@ namespace bislerium_blogs.Data
         public DbSet<BlogModel> BlogModel { get; set; }
 
         public DbSet<ReactionModel> ReactionModel { get; set; }
+        public DbSet<CommentModel> CommentModel { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

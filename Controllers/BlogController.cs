@@ -183,8 +183,19 @@ namespace bislerium_blogs.Controllers
             ////    return Unauthorized("User is not logged in.");
             ////}
 
-            var reaction = await _dataContext.ReactionModel.FirstOrDefaultAsync(r => r.BlogId == id && r.UserId == userId);
-
+            
+            if (reactionDto.CommentId != null)
+            {
+                var parentComment = await _dataContext.CommentModel.FirstOrDefaultAsync(c => c.Id == reactionDto.CommentId);
+                System.Diagnostics.Debug.WriteLine(parentComment);
+                System.Diagnostics.Debug.WriteLine(reactionDto.CommentId);
+                System.Diagnostics.Debug.WriteLine("dsaaadsadasdsa");
+                if (parentComment == null)
+                {
+                    return NotFound("Comment not found.");
+                }
+            }
+            var reaction = await _dataContext.ReactionModel.FirstOrDefaultAsync(r => r.BlogId == id && r.UserId == userId && r.CommentId == reactionDto.CommentId);
 
 
             if (reaction != null)
@@ -205,7 +216,8 @@ namespace bislerium_blogs.Controllers
                 {
                     BlogId = id,
                     UserId = userId,
-                    ReactionStatus = reactionDto.ReactionStatus
+                    ReactionStatus = reactionDto.ReactionStatus,
+                    CommentId = reactionDto.CommentId
                 };
                 _dataContext.ReactionModel.Add(reaction);
             }

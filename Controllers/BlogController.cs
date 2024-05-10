@@ -2,11 +2,13 @@
 using bislerium_blogs.DTO;
 using bislerium_blogs.Models;
 using bislerium_blogs.Services.Implementations;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 
 namespace bislerium_blogs.Controllers
@@ -17,7 +19,7 @@ namespace bislerium_blogs.Controllers
     public class BlogController : ControllerBase
     {
         private readonly DataContext _dataContext;
-        private readonly BlogService _blogService;
+        //private readonly BlogService _blogService;
 
 
         public BlogController(DataContext dataContext/*, BlogService blogService*/)
@@ -184,26 +186,49 @@ namespace bislerium_blogs.Controllers
                 return Unauthorized("You are not authorized to update this blog.");
             }
 
-
-            // set existing blog as not current
-            existingBlog.isCurrent = false;
-
-            await _dataContext.SaveChangesAsync();
-
-            // Create a new blog entry with the updated content
-            var newBlog = new BlogModel
+            // Create a new history log entry
+            var historyLog = new HistoryLog
             {
-                Title = existingBlog.Title, // Keep the same title as the existing blog
-                Content = model.Content, // Update the content with the provided value
-                UploadedTimestamp = existingBlog.UploadedTimestamp, // Keep the same uploaded timestamp as the existing blog
-                UpdatedTimestamp = DateTime.UtcNow, // Set the uploaded timestamp to the current time
-                UserId = existingBlog.UserId, // Set the UserId to the existing blog's UserId
-                ParentBlogId = existingBlog.ParentBlogId ?? id, // Set the ParentBlogId to the existing blog's ParentBlogId if not null, else use the ID from the request
-                isCurrent = true
+                OldContent = existingBlog.Content,
+                NewContent = model.Content,
+                UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Timestamp = DateTime.UtcNow,
+                IsBlog = true,
+                EntityId = existingBlog.Id,
             };
 
+            // Update the properties of the existing blog with the new values
+            existingBlog.Title = model.Title;
+            existingBlog.Content = model.Content;
+            existingBlog.UpdatedTimestamp = DateTime.UtcNow;
+
+            // Save the changes to the database
+            await _dataContext.SaveChangesAsync();
+
+            // Save the history log entry
+            _dataContext.HistoryLog.Add(historyLog);
+            await _dataContext.SaveChangesAsync();
+
+
+            // set existing blog as not current
+            //existingBlog.isCurrent = false;
+
+            //await _dataContext.SaveChangesAsync();
+
+            //// Create a new blog entry with the updated content
+            //var newBlog = new BlogModel
+            //{
+            //    Title = existingBlog.Title, // Keep the same title as the existing blog
+            //    Content = model.Content, // Update the content with the provided value
+            //    UploadedTimestamp = existingBlog.UploadedTimestamp, // Keep the same uploaded timestamp as the existing blog
+            //    UpdatedTimestamp = DateTime.UtcNow, // Set the uploaded timestamp to the current time
+            //    UserId = existingBlog.UserId, // Set the UserId to the existing blog's UserId
+            //    ParentBlogId = existingBlog.ParentBlogId ?? id, // Set the ParentBlogId to the existing blog's ParentBlogId if not null, else use the ID from the request
+            //    isCurrent = true
+            //};
+
             // Add the new blog entry to the database
-            _dataContext.BlogModel.Add(newBlog);
+            //_dataContext.BlogModel.Add(newBlog);
             await _dataContext.SaveChangesAsync();
 
             // Return a success response
@@ -308,7 +333,26 @@ namespace bislerium_blogs.Controllers
                     return NotFound("Comment not found.");
                 }
             }
-            
+
+            //Get Blog blog from id
+            var blog = await _dataContext.BlogModel.FirstOrDefaultAsync(b => b.Id == id);
+
+            if (blog == null)
+            {
+                return NotFound("Blog not found.");
+            }
+            var blogIdToSave = blog.Id;
+            //if blog has parent blog make blog = its parent
+            System.Diagnostics.Debug.WriteLine(blog.ParentBlogId);
+            System.Diagnostics.Debug.WriteLine(blog.Id);
+            System.Diagnostics.Debug.WriteLine("blog.ParentBlogId");
+
+
+            if (blog.ParentBlogId != null)
+            {
+                //blog = await _dataContext.BlogModel.FirstOrDefaultAsync(b => b.Id == blog.ParentBlogId);
+                blogIdToSave = (int)blog.ParentBlogId;
+            }
 
 
             //if (reaction != null)
@@ -325,7 +369,7 @@ namespace bislerium_blogs.Controllers
             System.Diagnostics.Debug.WriteLine("dsadsadasdsa");
             CommentModel comment = new CommentModel
             {
-                BlogId = id,
+                BlogId = blogIdToSave,
                 UserId = userId,
                 Content = commentDto.Content,
                 ParentCommentId = commentDto.ParentCommentId
@@ -336,5 +380,49 @@ namespace bislerium_blogs.Controllers
             //return Ok(reaction);
             return Ok("Comment added successfully.");
         }
+
+        [HttpPut("UpdateComment/{id}")]
+        public async Task<IActionResult> UpdateComment(int id, [FromBody] CommentModel model)
+        {
+            // Retrieve the existing comment based on the provided ID
+            var existingComment = await _dataContext.CommentModel.FindAsync(id);
+
+            if (existingComment == null)
+            {
+                // If the comment does not exist, return an error response
+                return NotFound("No comment found with the provided ID.");
+            }
+
+            // Check if the comment belongs to the logged-in user
+            if (existingComment.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                return Unauthorized("You are not authorized to update this comment.");
+            }
+
+            // Create a history log entry for the update
+            var historyLog = new HistoryLog
+            {
+                OldContent = existingComment.Content,
+                NewContent = model.Content,
+                UserId = existingComment.UserId,
+                IsBlog = false, // Set IsBlog to false for comment updates,
+                EntityId = existingComment.Id,
+                Timestamp = DateTime.UtcNow
+            };
+
+            // Update the existing comment with the new content
+            existingComment.Content = model.Content;
+
+            // Add the history log entry to the database
+            _dataContext.HistoryLog.Add(historyLog);
+
+            // Save changes to the database
+            await _dataContext.SaveChangesAsync();
+
+            // Return a success response
+            return Ok("Comment updated successfully.");
+        }
+
+
     }
 }

@@ -63,7 +63,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(policy =>
-policy.WithOrigins("http://localhost:3000", "https://localhost:3001")
+policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
 .AllowAnyMethod()
 .AllowAnyHeader()
 .WithExposedHeaders("Authorization")

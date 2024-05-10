@@ -8,6 +8,10 @@
         //public string BlogAuthor { get; set; }
         public DateTime UploadedTimestamp { get; set; }
 
+        public DateTime UpdatedTimestamp { get; set; }
+
+        public bool isCurrent { get; set; }
+
         // foreign key
         public string? UserId { get; set; }
 
@@ -19,6 +23,16 @@
 
         // Navigation property for comments
         public ICollection<CommentModel>? Comments { get; set; }
+
+
+        // Foreign key for the parent blog
+        public int? ParentBlogId { get; set; }
+
+        // Navigation property for the parent blog
+        public BlogModel? ParentBlog { get; set; }
+
+        // Navigation property for the child blogs
+        public ICollection<BlogModel>? ChildBlogs { get; set; }
 
     }
 }

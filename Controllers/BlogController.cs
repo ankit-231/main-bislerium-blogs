@@ -122,7 +122,17 @@ namespace bislerium_blogs.Controllers
 
             //return data.ToList();
 
-            var blogs = await _dataContext.BlogModel.ToListAsync();
+            var blogs = await _dataContext.BlogModel
+                .Where(b => b.isCurrent)
+                .Select(b => new BlogResponseDTO
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    // Add additional fields here
+                    Username = b.User.UserName,
+                })
+                .ToListAsync();
 
 
             return Ok(blogs);
@@ -153,6 +163,51 @@ namespace bislerium_blogs.Controllers
             await _dataContext.SaveChangesAsync();
             return CreatedAtAction("GetBlog", new { id = blog.Id }, blog);
             //return Ok(blog);
+        }
+
+        [HttpPut("UpdateBlog/{id}")]
+        public async Task<IActionResult> UpdateBlog(int id, [FromBody] BlogModel model)
+        {
+            // Retrieve the existing blog based on the provided ID
+            var existingBlog = await _dataContext.BlogModel.FindAsync(id);
+
+
+            if (existingBlog == null)
+            {
+                // If the blog does not exist, return an error response
+                return NotFound("No blog found with the provided ID.");
+            }
+
+            // Check if blog belongs to logged in user
+            if (existingBlog.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                return Unauthorized("You are not authorized to update this blog.");
+            }
+
+
+            // set existing blog as not current
+            existingBlog.isCurrent = false;
+
+            await _dataContext.SaveChangesAsync();
+
+            // Create a new blog entry with the updated content
+            var newBlog = new BlogModel
+            {
+                Title = existingBlog.Title, // Keep the same title as the existing blog
+                Content = model.Content, // Update the content with the provided value
+                UploadedTimestamp = existingBlog.UploadedTimestamp, // Keep the same uploaded timestamp as the existing blog
+                UpdatedTimestamp = DateTime.UtcNow, // Set the uploaded timestamp to the current time
+                UserId = existingBlog.UserId, // Set the UserId to the existing blog's UserId
+                ParentBlogId = existingBlog.ParentBlogId ?? id, // Set the ParentBlogId to the existing blog's ParentBlogId if not null, else use the ID from the request
+                isCurrent = true
+            };
+
+            // Add the new blog entry to the database
+            _dataContext.BlogModel.Add(newBlog);
+            await _dataContext.SaveChangesAsync();
+
+            // Return a success response
+            return Ok("Blog updated successfully.");
         }
 
         // Optional: GET by ID (to support CreatedAtAction)

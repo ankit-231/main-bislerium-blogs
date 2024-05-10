@@ -27,9 +27,15 @@ namespace bislerium_blogs.Data
                .HasForeignKey(b => b.UserId);
 
             modelBuilder.Entity<BlogModel>()
-                .HasOne(b => b.User)
-                .WithMany(u => u.Blogs)
-                .HasForeignKey(b => b.UserId);
+                .HasOne(b => b.ParentBlog)
+                .WithMany(b => b.ChildBlogs)
+                .HasForeignKey(b => b.ParentBlogId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //modelBuilder.Entity<BlogModel>()
+            //    .HasOne(b => b.User)
+            //    .WithMany(u => u.Blogs)
+            //    .HasForeignKey(b => b.UserId);
 
             modelBuilder.Entity<CommentModel>()
                 .HasOne(c => c.User)

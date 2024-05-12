@@ -31,3 +31,12 @@ Content-Type: application/json
 }
 
 ###
+
+POST {{bislerium-blogs_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  //RegisterRequestPayload
+}
+
+###

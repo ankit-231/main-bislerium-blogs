@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bislerium_blogs.Data;
 
@@ -10,9 +11,11 @@ using bislerium_blogs.Data;
 namespace bislerium_blogs.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240510030056_JustIsCurrentBlog")]
+    partial class JustIsCurrentBlog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -288,40 +291,6 @@ namespace bislerium_blogs.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("bislerium_blogs.Models.HistoryLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("EntityId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsBlog")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("NewContent")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("OldContent")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("HistoryLog");
-                });
-
             modelBuilder.Entity("bislerium_blogs.Models.ReactionModel", b =>
                 {
                     b.Property<int>("Id")
@@ -435,17 +404,6 @@ namespace bislerium_blogs.Migrations
                     b.Navigation("Blog");
 
                     b.Navigation("ParentComment");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("bislerium_blogs.Models.HistoryLog", b =>
-                {
-                    b.HasOne("bislerium_blogs.Models.CustomUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });

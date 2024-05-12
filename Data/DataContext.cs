@@ -16,6 +16,7 @@ namespace bislerium_blogs.Data
 
         public DbSet<ReactionModel> ReactionModel { get; set; }
         public DbSet<CommentModel> CommentModel { get; set; }
+        public DbSet<HistoryLog> HistoryLog { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,9 +28,15 @@ namespace bislerium_blogs.Data
                .HasForeignKey(b => b.UserId);
 
             modelBuilder.Entity<BlogModel>()
-                .HasOne(b => b.User)
-                .WithMany(u => u.Blogs)
-                .HasForeignKey(b => b.UserId);
+                .HasOne(b => b.ParentBlog)
+                .WithMany(b => b.ChildBlogs)
+                .HasForeignKey(b => b.ParentBlogId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            //modelBuilder.Entity<BlogModel>()
+            //    .HasOne(b => b.User)
+            //    .WithMany(u => u.Blogs)
+            //    .HasForeignKey(b => b.UserId);
 
             //modelBuilder.Entity<BlogModel>()
             //    .HasOne(b => b.OriginalBlog)        // Reference to original blog
@@ -65,7 +72,11 @@ namespace bislerium_blogs.Data
                 .WithMany(c => c.Reactions)
                 .HasForeignKey(r => r.CommentId);
 
-
+            modelBuilder.Entity<HistoryLog>()
+                .HasOne(h => h.User)
+                .WithMany()
+                .HasForeignKey(h => h.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // note: configure the table names and other things related to table here
             //modelBuilder.Entity<CustomUser>();

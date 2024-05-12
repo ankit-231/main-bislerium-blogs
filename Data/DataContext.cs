@@ -31,6 +31,14 @@ namespace bislerium_blogs.Data
                 .WithMany(u => u.Blogs)
                 .HasForeignKey(b => b.UserId);
 
+            //modelBuilder.Entity<BlogModel>()
+            //    .HasOne(b => b.OriginalBlog)        // Reference to original blog
+            //    .WithMany()                         // Original blog can have many revisions
+            //    .HasForeignKey(b => b.OriginalBlogId)  // Foreign key property
+            //    .IsRequired(false);                 // Original blog may not exist (nullable)
+
+
+
             modelBuilder.Entity<CommentModel>()
                 .HasOne(c => c.User)
                 .WithMany(u => u.Comments)

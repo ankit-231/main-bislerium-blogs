@@ -8,17 +8,22 @@
         //public string BlogAuthor { get; set; }
         public DateTime UploadedTimestamp { get; set; }
 
+        
+
+
         // foreign key
         public string? UserId { get; set; }
 
         // navigation property
         public CustomUser? User { get; set; }
 
-        // Navigation property for reactions
+        // aavigation property for reactions
         public ICollection<ReactionModel>? Reactions { get; set; }
 
-        // Navigation property for comments
+        // aavigation property for comments
         public ICollection<CommentModel>? Comments { get; set; }
+
+
 
     }
 }

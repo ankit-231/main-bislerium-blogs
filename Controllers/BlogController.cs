@@ -43,118 +43,19 @@ namespace bislerium_blogs.Controllers
         //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
         public async Task<IActionResult> GetAllBlogs()
         {
-            //var blogs = new List<string>
-            //{
-            //    "Blog 1",
-            //    "Blog 2",
-            //    "Blog 3"
-            //};
-            //System.Diagnostics.Debug.WriteLine("User Claims:");
-
-            //var User = HttpContext.User;
-            //System.Diagnostics.Debug.WriteLine(User.FindFirstValue);
-
-            //User.Claims.ToList().ForEach(c => System.Diagnostics.Debug.WriteLine($"Claim Type: {c.Type} - Claim Value: {c.Value}"));
-            //var blogs = new List<BlogModel> {
-            //    new BlogModel
-            //    {
-            //        Title = "Blog 1",
-            //        Content = "This is the content of Blog 1",
-            //        UploadedTimestamp = DateTime.Now
-            //    }
-            //};
-
-            //bool isAdmin = false;
-            //try
-            //{
-            //    isAdmin = await _blogContext.UserDetail.Where(item => item.UserId == CommonService.GetUserId(_httpContextAccessor.HttpContext)).Select(item => item.IsAdmin).FirstOrDefaultAsync();
-            //}
-            //catch (Exception ex) { }
-
-            //List<DetailedBlogApplications> data = new List<DetailedBlogApplications>();
-
-            //if (isAdmin)
-            //{
-            //    data = (from blog in _blogContext.BlogApplication
-            //            join user in _blogContext.UserDetail on blog.UserId equals user.UserId
-            //            where blog.IsDeleted != true
-            //            select new DetailedBlogApplications
-            //            {
-            //                BlogId = blog.BlogId,
-            //                BlogTitle = blog.BlogTitle,
-            //                BlogDescription = blog.BlogDescription,
-            //                CreatedOn = blog.CreatedOn,
-            //                FullName = user.FirstName + " " + user.LastName,
-            //                UserId = blog.UserId,
-            //            }).ToList();
-            //}
-            //else
-            //{
-            //    data = (from blog in _blogContext.BlogApplication
-            //            join user in _blogContext.UserDetail on blog.UserId equals user.UserId
-            //            where blog.IsDeleted != true && blog.UserId == CommonService.GetUserId(_httpContextAccessor.HttpContext)
-            //            select new DetailedBlogApplications
-            //            {
-            //                BlogId = blog.BlogId,
-            //                BlogTitle = blog.BlogTitle,
-            //                BlogDescription = blog.BlogDescription,
-            //                CreatedOn = blog.CreatedOn,
-            //                FullName = user.FirstName + " " + user.LastName,
-            //                UserId = blog.UserId,
-            //            }).ToList();
-            //}
 
 
-            //foreach (var blog in data)
-            //{
-            //    var images = await _blogContext.BlogImages
-            //        .Where(img => img.BlogId == blog.BlogId && img.IsDeleted != true)
-            //        .ToListAsync();
+            return await _blogService.GetAllBlogs();
+        }
 
-            //    List<BlogImageDetailed> detailedImages = images.Select(img => new BlogImageDetailed
-            //    {
-            //        ImageId = img.ImageId,
-            //        BlogId = img.BlogId,
-            //        ImagePath = img.ImagePath,
-            //    }).ToList();
+        [HttpGet]
+        [Route("MyBlogs")]
+        [Authorize]
+        //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
+        public async Task<IActionResult> GetMyBlogs()
+        {
 
-            //    Parallel.ForEach(detailedImages, img =>
-            //    {
-            //        img.ImageBytes = ReadLocalImageAsByteArray(img.ImagePath).Result;
-            //    });
-
-            //    blog.BlogImages = detailedImages;
-            //}
-
-            //return data.ToList();
-
-            //var blogs = await _dataContext.BlogModel
-            //    .Where(b => b.isCurrent)
-            //    .Select(b => new BlogResponseDTO
-            //    {
-            //        Id = b.Id,
-            //        Title = b.Title,
-            //        Content = b.Content,
-            //        // Add additional fields here
-            //        Username = b.User.UserName,
-            //    })
-            //    .ToListAsync();
-
-
-            //return Ok(blogs);
-
-            //return Ok();
-
-            //return Ok("This is your blog");
-
-            string? userId = null;
-
-            // Check if the user is authenticated
-            if (User.Identity.IsAuthenticated)
-            {
-                // Get the user ID from the token
-                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 
             return await _blogService.GetAllBlogs(userId);
@@ -226,28 +127,8 @@ namespace bislerium_blogs.Controllers
             await _dataContext.SaveChangesAsync();
 
 
-            // set existing blog as not current
-            //existingBlog.isCurrent = false;
-
-            //await _dataContext.SaveChangesAsync();
-
-            //// Create a new blog entry with the updated content
-            //var newBlog = new BlogModel
-            //{
-            //    Title = existingBlog.Title, // Keep the same title as the existing blog
-            //    Content = model.Content, // Update the content with the provided value
-            //    UploadedTimestamp = existingBlog.UploadedTimestamp, // Keep the same uploaded timestamp as the existing blog
-            //    UpdatedTimestamp = DateTime.UtcNow, // Set the uploaded timestamp to the current time
-            //    UserId = existingBlog.UserId, // Set the UserId to the existing blog's UserId
-            //    ParentBlogId = existingBlog.ParentBlogId ?? id, // Set the ParentBlogId to the existing blog's ParentBlogId if not null, else use the ID from the request
-            //    isCurrent = true
-            //};
-
-            // Add the new blog entry to the database
-            //_dataContext.BlogModel.Add(newBlog);
             await _dataContext.SaveChangesAsync();
 
-            // Return a success response
             return Ok("Blog updated successfully.");
         }
 
@@ -263,6 +144,55 @@ namespace bislerium_blogs.Controllers
             }
             return blog;
         }
+
+        [HttpGet]
+        [Route("GetBlogHistory/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetBlogHistory(int id)
+        {
+            var existingBlog = await _dataContext.BlogModel.FindAsync(id);
+
+
+            if (existingBlog == null)
+            {
+                // If the blog does not exist, return an error response
+                return NotFound("No blog found with the provided ID.");
+            }
+
+            // Check if blog belongs to logged in user
+            if (existingBlog.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                return Unauthorized("You are not authorized to get history of this blog.");
+            }
+
+            return await _blogService.GetHistory(id, true);
+
+        }
+
+        [HttpGet]
+        [Route("GetCommentHistory/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetCommentHistory(int id)
+        {
+            var existingComment = await _dataContext.CommentModel.FindAsync(id);
+
+
+            if (existingComment == null)
+            {
+                // If the comment does not exist, return an error response
+                return NotFound("No comment found with the provided ID.");
+            }
+
+            // Check if blog belongs to logged in user
+            if (existingComment.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                return Unauthorized("You are not authorized to get history of this comment.");
+            }
+
+            return await _blogService.GetHistory(id, false);
+
+        }
+
 
         // POST: api/Blogs/{id}/react
         [HttpPost("React/{id}")]

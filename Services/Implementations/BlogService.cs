@@ -31,9 +31,20 @@ namespace bislerium_blogs.Services.Implementations
 
         public async Task<IActionResult> GetAllBlogs(string? userId = null)
         {
-            var blogs = await _context.BlogModel
-                .Include(blog => blog.User) // eager loading User navigation property instead of lazy loading
-                .ToListAsync();
+            var blogs = new List<BlogModel>();
+            if (userId == null)
+            {
+                blogs = await _context.BlogModel
+                    .Include(blog => blog.User) // eager loading User navigation property instead of lazy loading
+                    .ToListAsync();
+            }
+            else
+            {
+                blogs = await _context.BlogModel
+                                .Include(blog => blog.User)
+                                .Where(blog => blog.UserId == userId) // filter blogs by user ID
+                                .ToListAsync();
+            }
 
             int? userReactionStatus = null;
 
@@ -147,6 +158,20 @@ namespace bislerium_blogs.Services.Implementations
             }
 
             return null; // Return null if no reaction is found
+        }
+
+        public async Task<IActionResult> GetHistory(int id, bool isBlog = true)
+        {
+            //return await _context.HistoryLog
+            //    .Where(log => log.EntityId == id && log.IsBlog)
+            //    .ToListAsync();
+
+            var history = await _context.HistoryLog
+                .Where(log => log.EntityId == id && log.IsBlog)
+                .ToListAsync();
+
+            return new OkObjectResult(history);
+
         }
 
     }

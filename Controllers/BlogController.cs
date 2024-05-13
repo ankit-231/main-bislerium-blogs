@@ -141,7 +141,7 @@ namespace bislerium_blogs.Controllers
 
         [HttpDelete("DeleteBlog/{id}")]
         [Authorize]
-        public async Task<IActionResult> DeleteBlog(int id, [FromBody] BlogModel model)
+        public async Task<IActionResult> DeleteBlog(int id)
         {
             // Retrieve the existing blog based on the provided ID
             var existingBlog = await _dataContext.BlogModel.FindAsync(id);

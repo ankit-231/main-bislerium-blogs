@@ -6,8 +6,10 @@ using bislerium_blogs.Services.Interfaces;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -41,11 +43,15 @@ namespace bislerium_blogs.Controllers
         [HttpGet]
         [Route("AllBlogs")]
         //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
-        public async Task<IActionResult> GetAllBlogs()
+        public async Task<IActionResult> GetAllBlogs([FromQuery] string? sortBy, [FromQuery] PaginationFilter filter)
         {
+            System.Console.WriteLine(sortBy);
+            System.Console.WriteLine("isisiisisisi");
+            System.Console.WriteLine(filter);
+            Console.WriteLine(filter.PageNumber);
+            Console.WriteLine(filter.PageSize);
+            return await _blogService.GetAllBlogs(_sortBy: sortBy, filter: filter);
 
-
-            return await _blogService.GetAllBlogs();
         }
 
         [HttpGet]
@@ -118,6 +124,7 @@ namespace bislerium_blogs.Controllers
             existingBlog.Title = model.Title;
             existingBlog.Content = model.Content;
             existingBlog.UpdatedTimestamp = DateTime.UtcNow;
+            existingBlog.UploadedTimestamp = existingBlog.UploadedTimestamp;
 
             // Save the changes to the database
             await _dataContext.SaveChangesAsync();
@@ -127,9 +134,39 @@ namespace bislerium_blogs.Controllers
             await _dataContext.SaveChangesAsync();
 
 
-            await _dataContext.SaveChangesAsync();
+            //await _dataContext.SaveChangesAsync();
 
             return Ok("Blog updated successfully.");
+        }
+
+        [HttpDelete("DeleteBlog/{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteBlog(int id, [FromBody] BlogModel model)
+        {
+            // Retrieve the existing blog based on the provided ID
+            var existingBlog = await _dataContext.BlogModel.FindAsync(id);
+
+
+            if (existingBlog == null)
+            {
+                // If the blog does not exist, return an error response
+                return NotFound("No blog found with the provided ID.");
+            }
+
+            // Check if blog belongs to logged in user
+            if (existingBlog.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                return Unauthorized("You are not authorized to update this blog.");
+            }
+
+            //delete existingBlog with await
+            _dataContext.BlogModel.Remove(existingBlog);
+
+            await _dataContext.SaveChangesAsync();
+
+            //var result = await _dataContext.BlogModel.Remove(existingBlog);
+
+            return Ok("Blog deleted successfully.");
         }
 
         // Optional: GET by ID (to support CreatedAtAction)

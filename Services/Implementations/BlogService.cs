@@ -29,30 +29,84 @@ namespace bislerium_blogs.Services.Implementations
             _context = context;
         }
 
-        public async Task<IActionResult> GetAllBlogs(string? userId = null)
+        public async Task<IActionResult> GetAllBlogs(string? userId = null, string? _sortBy = null, PaginationFilter? filter = null)
         {
             var blogs = new List<BlogModel>();
-            if (userId == null)
+            Console.WriteLine("hiiiii in service");
+            Console.WriteLine(_sortBy);
+            Console.WriteLine(filter);
+            Console.WriteLine(filter.PageNumber);
+            Console.WriteLine(filter.PageSize);
+
+            IQueryable<BlogModel> query = _context.BlogModel.Include(blog => blog.User);
+
+            //if (filter != null)
+            //{
+            //    query.Skip((filter.PageNumber - 1) * filter.PageSize)
+            //         .Take(filter.PageSize);
+            //}
+
+            if (userId != null)
             {
-                blogs = await _context.BlogModel
-                    .Include(blog => blog.User) // eager loading User navigation property instead of lazy loading
-                    .ToListAsync();
+                query = query.Where(blog => blog.UserId == userId);
+            }
+
+            //random sorting
+            if (_sortBy == "random")
+            {
+                var random = new Random();
+                // Execute query and retrieve all blogs
+
+
+                if (filter != null)
+                {
+                    query.Skip((filter.PageNumber - 1) * filter.PageSize)
+                         .Take(filter.PageSize);
+                }
+
+                blogs = await query.ToListAsync();
+
+                //ef does not support random next() in sql
+                var shuffledBlogs = blogs.OrderBy(blog => random.Next()).ToList();
+                blogs = shuffledBlogs;
             }
             else
             {
-                blogs = await _context.BlogModel
-                                .Include(blog => blog.User)
-                                .Where(blog => blog.UserId == userId) // filter blogs by user ID
-                                .ToListAsync();
+                if (_sortBy == "recent")
+                {
+                    query = query.OrderByDescending(blog => blog.UploadedTimestamp);
+                }
+                else if (_sortBy == "popular")
+                {
+                    query = query.OrderBy(blog => blog.UploadedTimestamp);
+                }
+                if (filter != null)
+                {
+                    Console.WriteLine("filte is not null");
+                    query.Skip((filter.PageNumber - 1) * filter.PageSize)
+                         .Take(filter.PageSize);
+                }
+                blogs = await query.ToListAsync();
+
             }
+
+            // Apply pagination after shuffling or sorting
+            if (filter != null)
+            {
+                blogs = blogs.Skip((filter.PageNumber - 1) * filter.PageSize)
+                             .Take(filter.PageSize)
+                             .ToList();
+            }
+
 
             int? userReactionStatus = null;
 
-
+            Console.WriteLine(blogs.Count);
 
             var blogDtos = new List<BlogResponseDTO>();
             foreach (var blog in blogs)
             {
+
                 if (userId != null)
                 {
                     userReactionStatus = await GetReactionStatusForUser(blog.Id, userId);
@@ -76,6 +130,8 @@ namespace bislerium_blogs.Services.Implementations
                     TotalDislikes = totalDisLikes,
                     TotalComments = totalComments,
                     UserReactionStatus = userReactionStatus,
+                    UploadedTimestamp = blog.UploadedTimestamp,
+                    UpdatedTimestamp = blog.UpdatedTimestamp,
                     //AllComments = allComments,
                     //CreatedAt = blog.CreatedAt,
                     //UpdatedAt = blog.UpdatedAt,
@@ -96,6 +152,8 @@ namespace bislerium_blogs.Services.Implementations
 
             return new OkObjectResult(blogDtos);
         }
+
+
 
         public async Task<int> BlogReactionCount(int blogId, string ReactionType)
         {

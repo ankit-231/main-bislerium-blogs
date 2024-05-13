@@ -21,5 +21,6 @@ namespace bislerium_blogs.DTO
         public int TotalDislikes { get; set; }
 
         public int TotalComments { get; set; }
+        public double PopularityScore { get; set; }
     }
 }

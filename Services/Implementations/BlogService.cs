@@ -40,11 +40,6 @@ namespace bislerium_blogs.Services.Implementations
 
             IQueryable<BlogModel> query = _context.BlogModel.Include(blog => blog.User);
 
-            //if (filter != null)
-            //{
-            //    query.Skip((filter.PageNumber - 1) * filter.PageSize)
-            //         .Take(filter.PageSize);
-            //}
 
             if (userId != null)
             {
@@ -58,11 +53,6 @@ namespace bislerium_blogs.Services.Implementations
                 // Execute query and retrieve all blogs
 
 
-                if (filter != null)
-                {
-                    query.Skip((filter.PageNumber - 1) * filter.PageSize)
-                         .Take(filter.PageSize);
-                }
 
                 blogs = await query.ToListAsync();
 
@@ -75,18 +65,27 @@ namespace bislerium_blogs.Services.Implementations
                 if (_sortBy == "recent")
                 {
                     query = query.OrderByDescending(blog => blog.UploadedTimestamp);
+                    blogs = await query.ToListAsync();
                 }
                 else if (_sortBy == "popular")
                 {
-                    query = query.OrderBy(blog => blog.UploadedTimestamp);
+                    blogs = await query.ToListAsync();
+                    var popularityResults = new List<(BlogModel Blog, double Popularity)>();
+
+                    foreach (var blog in blogs)
+                    {
+                        var popularity = await CalculateBlogPopularity(blog.Id);
+                        popularityResults.Add((blog, popularity));
+                    }
+                    // Sort blogs based on popularity scores
+                    var orderedBlogs = popularityResults.OrderByDescending(r => r.Popularity).Select(r => r.Blog).ToList();
+                    blogs = orderedBlogs;
                 }
-                if (filter != null)
+                else
                 {
-                    Console.WriteLine("filte is not null");
-                    query.Skip((filter.PageNumber - 1) * filter.PageSize)
-                         .Take(filter.PageSize);
+                    return new BadRequestObjectResult("Invalid sort order");
                 }
-                blogs = await query.ToListAsync();
+
 
             }
 
@@ -132,6 +131,7 @@ namespace bislerium_blogs.Services.Implementations
                     UserReactionStatus = userReactionStatus,
                     UploadedTimestamp = blog.UploadedTimestamp,
                     UpdatedTimestamp = blog.UpdatedTimestamp,
+                    PopularityScore = await CalculateBlogPopularity(blog.Id),
                     //AllComments = allComments,
                     //CreatedAt = blog.CreatedAt,
                     //UpdatedAt = blog.UpdatedAt,
@@ -178,6 +178,22 @@ namespace bislerium_blogs.Services.Implementations
                 .CountAsync(c => c.BlogId == blogId && c.ParentCommentId == null);
 
             return totalComments;
+        }
+
+        public async Task<double> CalculateBlogPopularity(int blogId)
+        {
+            // Define weightage values
+            double upvoteWeightage = 2;
+            double downvoteWeightage = -1;
+            double commentWeightage = 1;
+
+            var totalUpvotes = await BlogReactionCount(blogId, "like");
+            var totalDownvotes = await BlogReactionCount(blogId, "dislike");
+            var totalComments = await TotalComments(blogId);
+
+            double popularityScore = upvoteWeightage * totalUpvotes + downvoteWeightage * totalDownvotes + commentWeightage * totalComments;
+
+            return popularityScore;
         }
 
         public async Task<List<CommentDTO>> GetAllComments(int blogId/*, int commentID*/)

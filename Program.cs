@@ -1,5 +1,7 @@
 using bislerium_blogs.Data;
 using bislerium_blogs.Models;
+using bislerium_blogs.Services.Implementations;
+using bislerium_blogs.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
@@ -47,10 +49,30 @@ builder.Services.AddSwaggerGen(options =>
 //});
 
 builder.Services.AddDbContext<DataContext>(options => options.UseMySQL(builder.Configuration.GetConnectionString("BisleriumBlogsDB")));
-builder.Services.AddAuthorization();
+//builder.Services.AddAuthorization(options =>
+//    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
+
+
+//    );
+
+//builder.Services.AddIdentity<CustomUser, IdentityRole>()
+//       .AddEntityFrameworkStores<DataContext>()
+//    .AddDefaultTokenProviders();
+
+// RoleManager for managing roles
+//builder.Services.AddScoped<RoleManager<IdentityRole>>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
+
+//builder.Services.AddScoped<IGmailEmailProvider, GmailEmailProvider>();
+
+
 builder.Services.AddIdentityApiEndpoints<CustomUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<DataContext>();
 
+//builder.Services.AddScoped<IAuthService, AuthService>();
 
 
 var app = builder.Build();
@@ -74,8 +96,29 @@ app.MapIdentityApi<CustomUser>();
 
 app.UseHttpsRedirection();
 
+//app.UseWebSockets();
+
+
+
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+    var roles = new List<string> { "admin", "user" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
+
 
 app.Run();

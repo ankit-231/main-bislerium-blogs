@@ -2,6 +2,7 @@
 using bislerium_blogs.DTO;
 using bislerium_blogs.Models;
 using bislerium_blogs.Services.Implementations;
+using bislerium_blogs.Services.Interfaces;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,12 +20,14 @@ namespace bislerium_blogs.Controllers
     public class BlogController : ControllerBase
     {
         private readonly DataContext _dataContext;
+        private readonly IBlogService _blogService;
         //private readonly BlogService _blogService;
 
 
-        public BlogController(DataContext dataContext/*, BlogService blogService*/)
+        public BlogController(DataContext dataContext, IBlogService blogService)
         {
             _dataContext = dataContext;
+            _blogService = blogService;
             //_blogService = blogService;
         }
 
@@ -37,7 +40,8 @@ namespace bislerium_blogs.Controllers
         //[HttpGet(Name = "AllBlogs")]
         [HttpGet]
         [Route("AllBlogs")]
-        public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
+        //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
+        public async Task<IActionResult> GetAllBlogs()
         {
             //var blogs = new List<string>
             //{
@@ -124,24 +128,36 @@ namespace bislerium_blogs.Controllers
 
             //return data.ToList();
 
-            var blogs = await _dataContext.BlogModel
-                .Where(b => b.isCurrent)
-                .Select(b => new BlogResponseDTO
-                {
-                    Id = b.Id,
-                    Title = b.Title,
-                    Content = b.Content,
-                    // Add additional fields here
-                    Username = b.User.UserName,
-                })
-                .ToListAsync();
+            //var blogs = await _dataContext.BlogModel
+            //    .Where(b => b.isCurrent)
+            //    .Select(b => new BlogResponseDTO
+            //    {
+            //        Id = b.Id,
+            //        Title = b.Title,
+            //        Content = b.Content,
+            //        // Add additional fields here
+            //        Username = b.User.UserName,
+            //    })
+            //    .ToListAsync();
 
 
-            return Ok(blogs);
+            //return Ok(blogs);
 
             //return Ok();
 
             //return Ok("This is your blog");
+
+            string? userId = null;
+
+            // Check if the user is authenticated
+            if (User.Identity.IsAuthenticated)
+            {
+                // Get the user ID from the token
+                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            }
+
+
+            return await _blogService.GetAllBlogs(userId);
         }
 
         //create post method for adding blog
@@ -263,7 +279,7 @@ namespace bislerium_blogs.Controllers
             ////    return Unauthorized("User is not logged in.");
             ////}
 
-            
+
             if (reactionDto.CommentId != null)
             {
                 var parentComment = await _dataContext.CommentModel.FirstOrDefaultAsync(c => c.Id == reactionDto.CommentId);

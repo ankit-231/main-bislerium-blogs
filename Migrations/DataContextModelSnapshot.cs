@@ -182,7 +182,7 @@ namespace bislerium_blogs.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("BlogModel");
+                    b.ToTable("BlogModel", (string)null);
                 });
 
             modelBuilder.Entity("bislerium_blogs.Models.CommentModel", b =>
@@ -212,7 +212,7 @@ namespace bislerium_blogs.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CommentModel");
+                    b.ToTable("CommentModel", (string)null);
                 });
 
             modelBuilder.Entity("bislerium_blogs.Models.CustomUser", b =>
@@ -319,7 +319,7 @@ namespace bislerium_blogs.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HistoryLog");
+                    b.ToTable("HistoryLog", (string)null);
                 });
 
             modelBuilder.Entity("bislerium_blogs.Models.ReactionModel", b =>
@@ -348,7 +348,7 @@ namespace bislerium_blogs.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ReactionModel");
+                    b.ToTable("ReactionModel", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

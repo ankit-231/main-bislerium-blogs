@@ -33,13 +33,6 @@ namespace bislerium_blogs.Controllers
             //_blogService = blogService;
         }
 
-        //[HttpGet]
-        //public IActionResult Get()
-        //{
-        //    return Ok("This is your blog");
-        //}
-
-        //[HttpGet(Name = "AllBlogs")]
         [HttpGet]
         [Route("AllBlogs")]
         //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
@@ -50,7 +43,55 @@ namespace bislerium_blogs.Controllers
             System.Console.WriteLine(filter);
             Console.WriteLine(filter.PageNumber);
             Console.WriteLine(filter.PageSize);
+            //return await _blogService.GetAllBlogs(_sortBy: sortBy, filter: filter);
+            return await _blogService.GetPaginatedBlogs(_sortBy: sortBy, filter: filter);
+
+        }
+
+        [HttpGet]
+        [Route("TopTenBlogs")]
+        //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
+        public async Task<IActionResult> GetTopTenBlogs([FromQuery] string? timeType)
+        {
+            var sortBy = "popular";
+            System.Console.WriteLine(sortBy);
+            System.Console.WriteLine("isisiisisisi");
+            //System.Console.WriteLine(filter);
+            //Console.WriteLine(filter.PageNumber);
+            //Console.WriteLine(filter.PageSize);
+            //return await _blogService.GetAllBlogs(_sortBy: sortBy, filter: filter);
+            return await _blogService.GetPaginatedBlogs(_sortBy: sortBy, total: 10, timeType: timeType);
+
+        }
+
+        [HttpGet]
+        [Route("TopTenAuthors")]
+        //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
+        public async Task<IActionResult> GetTopTenAuthors([FromQuery] string? timeType)
+        {
+            var sortBy = "popular";
+            System.Console.WriteLine(sortBy);
+            System.Console.WriteLine("isisiisisisi");
+            //System.Console.WriteLine(filter);
+            //Console.WriteLine(filter.PageNumber);
+            //Console.WriteLine(filter.PageSize);
+            //return await _blogService.GetAllBlogs(_sortBy: sortBy, filter: filter);
+            return await _blogService.GetTopTenAuthors(timeType: timeType);
+
+        }
+
+        [HttpGet]
+        [Route("AllBlogsPaginated")]
+        //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
+        public async Task<IActionResult> GetAllBlogsPaginated([FromQuery] string? sortBy, [FromQuery] PaginationFilter filter)
+        {
+            System.Console.WriteLine(sortBy);
+            System.Console.WriteLine("isisiisisisi");
+            System.Console.WriteLine(filter);
+            Console.WriteLine(filter.PageNumber);
+            Console.WriteLine(filter.PageSize);
             return await _blogService.GetAllBlogs(_sortBy: sortBy, filter: filter);
+            //return await _blogService.GetPaginatedBlogs(_sortBy: sortBy, filter: filter);
 
         }
 
@@ -231,20 +272,14 @@ namespace bislerium_blogs.Controllers
         }
 
 
-        // POST: api/Blogs/{id}/react
         [HttpPost("React/{id}")]
         [Authorize]  // Ensure the user is authenticated
         public async Task<IActionResult> PostReaction(int id, [FromBody] ReactionModel reactionDto)
         {
 
             System.Diagnostics.Debug.WriteLine(reactionDto);
-            //System.Diagnostics.Debug.WriteLine("reactionDtossasa");
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             System.Diagnostics.Debug.WriteLine(userId);
-            ////if (userId == null)
-            ////{
-            ////    return Unauthorized("User is not logged in.");
-            ////}
 
 
             if (reactionDto.CommentId != null)

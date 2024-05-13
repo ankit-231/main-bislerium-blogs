@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Reflection.Metadata;
 
 
@@ -33,10 +34,10 @@ namespace bislerium_blogs.Services.Implementations
         {
             var blogs = new List<BlogModel>();
             Console.WriteLine("hiiiii in service");
-            Console.WriteLine(_sortBy);
-            Console.WriteLine(filter);
-            Console.WriteLine(filter.PageNumber);
-            Console.WriteLine(filter.PageSize);
+            //Console.WriteLine(_sortBy);
+            //Console.WriteLine(filter);
+            //Console.WriteLine(filter.PageNumber);
+            //Console.WriteLine(filter.PageSize);
 
             IQueryable<BlogModel> query = _context.BlogModel.Include(blog => blog.User);
 
@@ -92,7 +93,7 @@ namespace bislerium_blogs.Services.Implementations
 
 
             }
-
+            var totalRecords = blogs.Count;
             // Apply pagination after shuffling or sorting
             if (filter != null)
             {
@@ -153,11 +154,87 @@ namespace bislerium_blogs.Services.Implementations
 
                 blogDtos.Add(blogDto);
             }
+            PaginatedResponse<BlogResponseDTO> response;
+            if (filter != null)
+            {
+                response = new PaginatedResponse<BlogResponseDTO>
+                {
+                    PageNumber = filter.PageNumber,
+                    PageSize = filter.PageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalRecords / filter.PageSize),
+                    TotalRecords = totalRecords,
+                    Data = blogDtos,
+                };
 
-            return new OkObjectResult(blogDtos);
+            }
+            else
+            {
+                response = new PaginatedResponse<BlogResponseDTO>
+                {
+                    PageNumber = 1,
+                    PageSize = 100,
+                    TotalPages = 1,
+                    TotalRecords = 100,
+                    Data = blogDtos,
+                };
+            }
+
+            //return new OkObjectResult(blogDtos);
+            return new OkObjectResult(response);
         }
 
+        public async Task<IActionResult> GetPaginatedBlogs(string? userId = null, string? _sortBy = null, PaginationFilter? filter = null, int? total = null, string? timeType = null)
+        {
+            var blogs = await GetAllBlogs(_sortBy: _sortBy, filter: filter);
+            if (blogs is OkObjectResult)
+            {
+                var blogDtos = ((OkObjectResult)blogs).Value as PaginatedResponse<BlogResponseDTO>;
+                //get first 10 data
+                var blogData = blogDtos.Data;
+                if (total != null)
+                {
+                    blogData = blogDtos.Data.Take((int)total).ToList();
+                }
+                if (timeType != "all" && int.TryParse(timeType, out int month))
+                {
+                    blogData = blogData.Where(blog => blog.UploadedTimestamp.Month == month).ToList();
+                }
 
+                return new OkObjectResult(blogData);
+            }
+            else
+            {
+                return blogs;
+            }
+        }
+
+        public async Task<IActionResult> GetTopTenAuthors(string? timeType = null)
+        {
+            var blogs = await GetAllBlogs(_sortBy: "popular");
+            if (blogs is OkObjectResult)
+            {
+                var blogDtos = ((OkObjectResult)blogs).Value as PaginatedResponse<BlogResponseDTO>;
+                //get first 10 data
+                var blogData = blogDtos.Data;
+                blogData = blogDtos.Data.Take(10).ToList();
+                //var authors = blogData.Select(blog => blog.Author).ToList();
+                
+                if (timeType != "all" && int.TryParse(timeType, out int month))
+                {
+                    //authors = blogData.Where(blog => blog.UploadedTimestamp.Month == month).Select(blog => blog.Author).Distinct().ToList();
+                    blogData = blogData.Where(blog => blog.UploadedTimestamp.Month == month).ToList();
+                }
+                //var uniqueAuthors = blogData.Select(blog => blog.Author).Distinct().ToList();
+                var uniqueAuthors = blogData.GroupBy(blog => blog.Author.UserId)
+                                    .Select(group => group.First().Author)
+                                    .ToList();
+                return new OkObjectResult(uniqueAuthors);
+            }
+            else
+            {
+                return blogs;
+            }
+        }
 
         public async Task<int> BlogReactionCount(int blogId, string ReactionType)
         {
@@ -179,7 +256,7 @@ namespace bislerium_blogs.Services.Implementations
         public async Task<int> TotalComments(int blogId)
         {
             var totalComments = await _context.CommentModel
-                .CountAsync(c => c.BlogId == blogId && c.ParentCommentId == null);
+                .CountAsync(c => c.BlogId == blogId/* && c.ParentCommentId == null*/);
 
             return totalComments;
         }

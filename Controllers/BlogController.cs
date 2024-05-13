@@ -156,7 +156,7 @@ namespace bislerium_blogs.Controllers
             // Check if blog belongs to logged in user
             if (existingBlog.UserId != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
-                return Unauthorized("You are not authorized to update this blog.");
+                return Unauthorized("You are not authorized to delete this blog.");
             }
 
             //delete existingBlog with await

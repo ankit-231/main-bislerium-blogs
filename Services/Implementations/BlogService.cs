@@ -46,6 +46,10 @@ namespace bislerium_blogs.Services.Implementations
                 query = query.Where(blog => blog.UserId == userId);
             }
 
+            if (_sortBy == null)
+            {
+                _sortBy = "recent";
+            }
             //random sorting
             if (_sortBy == "random")
             {

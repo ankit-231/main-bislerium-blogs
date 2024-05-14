@@ -36,7 +36,7 @@ namespace bislerium_blogs.Controllers
         [HttpGet]
         [Route("AllBlogs")]
         //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
-        public async Task<IActionResult> GetAllBlogs([FromQuery] string? sortBy, [FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetAllBlogs([FromQuery] string? sortBy, [FromQuery] PaginationFilter filter, [FromQuery] string? timeType)
         {
             System.Console.WriteLine(sortBy);
             System.Console.WriteLine("isisiisisisi");
@@ -44,12 +44,13 @@ namespace bislerium_blogs.Controllers
             Console.WriteLine(filter.PageNumber);
             Console.WriteLine(filter.PageSize);
             //return await _blogService.GetAllBlogs(_sortBy: sortBy, filter: filter);
-            return await _blogService.GetPaginatedBlogs(_sortBy: sortBy, filter: filter);
+            return await _blogService.GetPaginatedBlogs(_sortBy: sortBy, filter: filter, timeType: timeType);
 
         }
 
         [HttpGet]
         [Route("TopTenBlogs")]
+        [Authorize(Roles = "admin")]
         //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
         public async Task<IActionResult> GetTopTenBlogs([FromQuery] string? timeType)
         {
@@ -66,6 +67,7 @@ namespace bislerium_blogs.Controllers
 
         [HttpGet]
         [Route("TopTenAuthors")]
+        [Authorize(Roles = "admin")]
         //public async Task<ActionResult<List<BlogModel>>> GetAllBlogs()
         public async Task<IActionResult> GetTopTenAuthors([FromQuery] string? timeType)
         {

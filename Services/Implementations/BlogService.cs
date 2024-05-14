@@ -16,18 +16,19 @@ namespace bislerium_blogs.Services.Implementations
     public class BlogService : IBlogService
     {
         //private readonly SignInManager<CustomUser> _signInManager;
-        //private readonly UserManager<CustomUser> _userManager;
+        private readonly UserManager<CustomUser> _userManager;
         //private readonly RoleManager<IdentityRole> _roleManager;
         private readonly DataContext _context;
         //private readonly IEmailService _emailService;
 
-        public BlogService(DataContext context/*, SignInManager<CustomUser> signInManager, UserManager<CustomUser> userManager, RoleManager<IdentityRole> roleManager, IEmailService emailService*/)
+        public BlogService(DataContext context, UserManager<CustomUser> userManager/*, SignInManager<CustomUser> signInManager, , RoleManager<IdentityRole> roleManager, IEmailService emailService*/)
         {
             //_signInManager = signInManager;
             //_userManager = userManager;
             //_roleManager = roleManager;
             //_emailService = emailService;
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> GetAllBlogs(string? userId = null, string? _sortBy = null, PaginationFilter? filter = null)
@@ -147,6 +148,7 @@ namespace bislerium_blogs.Services.Implementations
                         Email = blog.User.Email,
                         FirstName = blog.User.FirstName,
                         LastName = blog.User.LastName,
+                        Role = _userManager.GetRolesAsync(blog.User).Result.ToList()
                     } : null
 
                     //TotalLikes = blog.Likes.Count
